@@ -1,49 +1,41 @@
 import pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
-import { TextLayerBuilder } from 'pdfjs-dist/lib/web/text_layer_builder';
-// import 'pdfjs-dist/lib/web/ui_utils';
+import pdfjsViewer from 'pdfjs-dist/web/pdf_viewer';
+import 'pdfjs-dist/web/pdf_viewer.css';
+import './index.css';
 
+// pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.2.2/pdf.worker.min.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const main = async () => {
   const url = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
   // const url = '/sample.pdf';
+  const container = document.querySelector('#pdf-wrapper');
+  const pageNumber = 1;
+  const scale = 1;
   const loadingTask = pdfjsLib.getDocument(url);
-  loadingTask.promise
-    .then(function (pdfDocument) {
-      // Request a first page
-      return pdfDocument.getPage(1).then(function (pdfPage) {
-        // Display page on the existing canvas with 100% scale.
-        const viewport = pdfPage.getViewport({ scale: 1.0 });
-        console.log('viewport:', viewport);
-        const canvas = document.getElementById("theCanvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext("2d");
-        const renderTask = pdfPage.render({
-          canvasContext: ctx,
-          viewport,
-        });
+  loadingTask.promise.then(pdfDocument => {
+    const eventBus = new pdfjsViewer.EventBus();
+    return pdfDocument.getPage(pageNumber).then(pdfPage => {
+      const pdfPageView = new pdfjsViewer.PDFPageView({
+        container: container,
+        id: pageNumber,
+        scale,
+        eventBus,
+        defaultViewport: pdfPage.getViewport({ scale }),
 
-        var $textLayerDiv = document.getElementById('text-layer');
-
-        pdfPage.getTextContent().then(function(textContent){
-          var textLayer = new TextLayerBuilder({
-            textLayerDiv : $textLayerDiv,
-            pageIndex : 0,
-            viewport : viewport
-          });
-
-          textLayer.setTextContent(textContent);
-          textLayer.render();
-        });
-
-        return renderTask.promise;
+        // NOTE: this will create a DIV DOM for text selection
+        // Enable text/annotations layers, if needed
+        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
+        annotationLayerFactory: new pdfjsViewer.DefaultAnnotationLayerFactory(),
       });
-    })
-    .catch(function (reason) {
+      // Associates the actual page with the view, and drawing it
+      pdfPageView.setPdfPage(pdfPage);
+      return pdfPageView.draw();
+    }).catch(function (reason) {
       console.error("Error: " + reason);
     });
+  });
 }
 
 main();

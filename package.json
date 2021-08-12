@@ -4,11 +4,13 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.12.19"
+    "esbuild": "^0.12.19",
+    "http-server": "^13.0.0"
   },
   "scripts": {
-    "build": "yarn esbuild ./src/index.js --bundle --target=chrome58,firefox57,safari11,edge18 --outfile=dist/app.js",
-    "postbuild": "cp src/index.html dist/index.html && cp src/sample.pdf dist/sample.pdf"
+    "build": "yarn esbuild ./src/index.js --bundle --loader:.png=dataurl --loader:.gif=dataurl --loader:.svg=text --target=chrome58,firefox57,safari11,edge18 --outdir=dist",
+    "postbuild": "cp src/index.html dist/index.html && cp src/sample.pdf dist/sample.pdf",
+    "start": "yarn build && http-server dist/"
   },
   "dependencies": {
     "pdfjs-dist": "^2.9.359"
