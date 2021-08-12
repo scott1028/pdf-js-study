@@ -1,0 +1,16 @@
+{
+  "name": "pdf-study",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.12.19"
+  },
+  "scripts": {
+    "build": "yarn esbuild ./src/index.js --bundle --target=chrome58,firefox57,safari11,edge18 --outfile=dist/app.js",
+    "postbuild": "cp src/index.html dist/index.html && cp src/sample.pdf dist/sample.pdf"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^2.9.359"
+  }
+}
